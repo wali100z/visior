@@ -18,7 +18,7 @@ const jobs = {};
 function runAIDetector(jobId, veoLink, shirtNumber, jerseyColor) {
   jobs[jobId] = { status: "processing", clips: [], error: null };
 
-  const py = spawn("python", [AI_SCRIPT, veoLink, shirtNumber, jerseyColor]);
+  const py = spawn("python3", [AI_SCRIPT, veoLink, shirtNumber, jerseyColor]);
   let output = "";
   let errorOutput = "";
 
@@ -104,7 +104,7 @@ app.get("/api/clips-list", function(req, res) {
   res.json({ clips: files.map(function(f) { return "/clips/" + f; }) });
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = 3001;
 app.listen(PORT, function() {
   console.log("\n[VISIOR] Running on http://localhost:" + PORT + "\n");
 });
