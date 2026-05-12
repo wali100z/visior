@@ -20,6 +20,7 @@ def get_or_create_index():
     headers = {"x-api-key": TWELVELABS_API_KEY}
 
     res = requests.get(f"{TWELVELABS_API}/indexes", headers=headers)
+    print(f"[TL] Index response: {res.status_code} {res.text[:200]}", flush=True)
     indexes = res.json().get("data", [])
 
     for idx in indexes:
@@ -168,7 +169,7 @@ def run(input_path, shirt_number, jersey_color):
     print(f"[VISIOR] Player #{shirt_number} | {jersey_color} jersey", flush=True)
 
     if not TWELVELABS_API_KEY:
-        raise RuntimeError("tlk_0MFC7TN2DTYGQ52REYG9X0J1XAWH")
+        raise RuntimeError("TWELVELABS_API_KEY not set")
 
     # 1. Get or create index
     index_id = get_or_create_index()
