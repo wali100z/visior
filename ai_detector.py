@@ -1,150 +1,118 @@
 # -*- coding: utf-8 -*-
 import sys
-import cv2
-import numpy as np
-import subprocess
 import os
 import json
-import multiprocessing as mp
+import time
+import subprocess
+import requests
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-# ── CONFIG ──────────────────────────────────────────────
-CLIPS_OUTPUT_DIR  = "clips"
-FRAME_SKIP        = 45        # check every 45th frame (~every 1.8s at 25fps)
-PRE_ROLL_SEC      = 5
-MAX_CLIP_SEC      = 60
-MIN_CLIP_GAP_SEC  = 8
-NUM_WORKERS       = max(2, mp.cpu_count() - 1)  # use all cores except 1
-# ────────────────────────────────────────────────────────
-
-COLOR_RANGES = {
-    "white":      [(0,   0,  200), (180, 30, 255)],
-    "black":      [(0,   0,    0), (180, 60,  50)],
-    "red":        [(0,  120,  80), (10,  255, 255)],
-    "blue":       [(100, 80,  80), (130, 255, 255)],
-    "navy":       [(100, 80,  30), (125, 255, 120)],
-    "navy blue":  [(100, 80,  30), (125, 255, 120)],
-    "dark blue":  [(100, 80,  30), (125, 255, 120)],
-    "sky blue":   [(95,  60, 140), (115, 255, 255)],
-    "light blue": [(95,  60, 140), (115, 255, 255)],
-    "green":      [(40,  80,  80), (80,  255, 255)],
-    "dark green": [(40,  80,  30), (75,  255, 150)],
-    "light green":[(45, 60, 140), (85,  255, 255)],
-    "yellow":     [(20, 120, 100), (35,  255, 255)],
-    "orange":     [(10, 120, 100), (20,  255, 255)],
-    "purple":     [(130, 60,  60), (160, 255, 255)],
-    "pink":       [(160, 60, 100), (175, 255, 255)],
-    "gray":       [(0,    0,  80), (180,  25, 180)],
-    "grey":       [(0,    0,  80), (180,  25, 180)],
-    "maroon":     [(0,  100,  40), (10,  255, 150)],
-    "burgundy":   [(0,  100,  40), (10,  255, 150)],
-    "turquoise":  [(80,  80, 100), (100, 255, 255)],
-    "brown":      [(10,  80,  40), (20,  255, 150)],
-}
+TWELVELABS_API_KEY = os.environ.get("TWELVELABS_API_KEY", "")
+TWELVELABS_API     = "https://api.twelvelabs.io/v1.2"
+CLIPS_OUTPUT_DIR   = "clips"
+MAX_CLIP_SEC       = 60
+PRE_ROLL_SEC       = 5
 
 
-def detect_jersey(frame, jersey_color):
-    color = jersey_color.lower()
-    if color not in COLOR_RANGES:
-        color = "white"
-    low  = np.array(COLOR_RANGES[color][0], dtype=np.uint8)
-    high = np.array(COLOR_RANGES[color][1], dtype=np.uint8)
+def get_or_create_index():
+    """Get existing Visior index or create one."""
+    headers = {"x-api-key": TWELVELABS_API_KEY}
 
-    h, w = frame.shape[:2]
-    roi  = frame[int(h*0.15):int(h*0.85), int(w*0.05):int(w*0.95)]
-    small = cv2.resize(roi, (320, 180))
-    hsv   = cv2.cvtColor(small, cv2.COLOR_BGR2HSV)
-    mask  = cv2.inRange(hsv, low, high)
+    res = requests.get(f"{TWELVELABS_API}/indexes", headers=headers)
+    indexes = res.json().get("data", [])
 
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    for cnt in contours:
-        area = cv2.contourArea(cnt)
-        if area > 200:
-            x, y, cw, ch = cv2.boundingRect(cnt)
-            aspect = ch / max(cw, 1)
-            if 0.7 < aspect < 3.5:
-                return True
-    return False
+    for idx in indexes:
+        if idx.get("name") == "visior-matches":
+            print(f"[TL] Using existing index: {idx['_id']}", flush=True)
+            return idx["_id"]
+
+    res = requests.post(f"{TWELVELABS_API}/indexes", headers=headers, json={
+        "name": "visior-matches",
+        "models": [{"name": "marengo2.7", "options": ["visual", "conversation"]}]
+    })
+    idx_id = res.json()["_id"]
+    print(f"[TL] Created index: {idx_id}", flush=True)
+    return idx_id
 
 
-def scan_chunk(args):
-    """Scan a chunk of frames — runs in parallel."""
-    video_path, start_frame, end_frame, jersey_color, fps = args
-    cap = cv2.VideoCapture(video_path)
-    cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
+def upload_video(index_id, video_path):
+    """Upload video to Twelve Labs and wait for indexing."""
+    headers = {"x-api-key": TWELVELABS_API_KEY}
 
-    timestamps = []
-    frame_idx  = start_frame
+    print(f"[TL] Uploading video to Twelve Labs...", flush=True)
 
-    while frame_idx < end_frame:
-        ret, frame = cap.read()
-        if not ret:
-            break
-        if (frame_idx - start_frame) % FRAME_SKIP == 0:
-            ts = frame_idx / fps
-            if detect_jersey(frame, jersey_color):
-                timestamps.append(round(ts, 2))
-        frame_idx += 1
+    with open(video_path, "rb") as f:
+        res = requests.post(
+            f"{TWELVELABS_API}/tasks",
+            headers=headers,
+            data={"index_id": index_id},
+            files={"video_file": f}
+        )
 
-    cap.release()
-    return timestamps
+    task_id = res.json().get("_id")
+    if not task_id:
+        raise RuntimeError(f"Upload failed: {res.text}")
 
+    print(f"[TL] Upload started, task: {task_id}", flush=True)
 
-def find_player_timestamps(video_path, jersey_color):
-    print(f"[SCAN] Opening video...", flush=True)
-    cap = cv2.VideoCapture(video_path)
-    if not cap.isOpened():
-        raise RuntimeError(f"Could not open: {video_path}")
+    # Wait for indexing to complete
+    while True:
+        res    = requests.get(f"{TWELVELABS_API}/tasks/{task_id}", headers=headers)
+        data   = res.json()
+        status = data.get("status")
+        print(f"[TL] Indexing status: {status}", flush=True)
 
-    fps          = cap.get(cv2.CAP_PROP_FPS) or 25
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    cap.release()
+        if status == "ready":
+            video_id = data.get("video_id")
+            print(f"[TL] Indexed! Video ID: {video_id}", flush=True)
+            return video_id
+        elif status == "failed":
+            raise RuntimeError("Twelve Labs indexing failed")
 
-    print(f"[SCAN] {int(total_frames/fps/60)} min match | {NUM_WORKERS} workers | scanning...", flush=True)
-
-    # Split into chunks for parallel processing
-    chunk_size = total_frames // NUM_WORKERS
-    chunks = []
-    for i in range(NUM_WORKERS):
-        s = i * chunk_size
-        e = s + chunk_size if i < NUM_WORKERS - 1 else total_frames
-        chunks.append((video_path, s, e, jersey_color, fps))
-
-    # Run all chunks in parallel
-    with mp.Pool(NUM_WORKERS) as pool:
-        results = pool.map(scan_chunk, chunks)
-
-    # Merge and sort all timestamps
-    timestamps = sorted([ts for chunk in results for ts in chunk])
-    print(f"[SCAN] Done! {len(timestamps)} moments found.", flush=True)
-    return timestamps, fps
+        time.sleep(10)
 
 
-def merge_timestamps(timestamps):
-    if not timestamps:
+def search_player(index_id, video_id, shirt_number, jersey_color):
+    """Search for player moments using Twelve Labs."""
+    headers = {"x-api-key": TWELVELABS_API_KEY, "Content-Type": "application/json"}
+
+    query = f"player wearing {jersey_color} jersey with number {shirt_number} on their shirt"
+
+    print(f"[TL] Searching: {query}", flush=True)
+
+    res = requests.post(f"{TWELVELABS_API}/search", headers=headers, json={
+        "index_id": index_id,
+        "query": query,
+        "search_options": ["visual"],
+        "filter": {"id": [video_id]},
+        "threshold": "medium",
+        "page_limit": 50
+    })
+
+    data = res.json()
+    clips = data.get("data", [])
+
+    print(f"[TL] Found {len(clips)} moments", flush=True)
+    return clips
+
+
+def merge_clips(clips):
+    """Merge overlapping clip segments."""
+    if not clips:
         return []
 
-    segments = []
-    start = timestamps[0]
-    end   = timestamps[0]
+    segments = sorted([(c["start"], c["end"]) for c in clips])
+    merged   = [list(segments[0])]
 
-    for ts in timestamps[1:]:
-        if ts - end <= MIN_CLIP_GAP_SEC:
-            end = ts
-            if end - start >= MAX_CLIP_SEC:
-                segments.append([start, end])
-                start = ts
-                end   = ts
+    for start, end in segments[1:]:
+        if start - merged[-1][1] <= 8:
+            merged[-1][1] = max(merged[-1][1], end)
         else:
-            segments.append([start, end])
-            start = ts
-            end   = ts
-
-    segments.append([start, end])
+            merged.append([start, end])
 
     final = []
-    for s, e in segments:
+    for s, e in merged:
         clip_start = max(0, s - PRE_ROLL_SEC)
         clip_end   = min(e + 3, clip_start + MAX_CLIP_SEC)
         final.append([round(clip_start, 2), round(clip_end, 2)])
@@ -152,15 +120,16 @@ def merge_timestamps(timestamps):
     return final
 
 
-def cut_clips(video_path, segments, output_dir=CLIPS_OUTPUT_DIR):
-    os.makedirs(output_dir, exist_ok=True)
+def cut_clips(video_path, segments):
+    """Cut clips in TikTok 9:16 format."""
+    os.makedirs(CLIPS_OUTPUT_DIR, exist_ok=True)
     clip_paths = []
 
-    print(f"[CUT] Cutting {len(segments)} clips in TikTok 9:16 format...", flush=True)
+    print(f"[CUT] Cutting {len(segments)} clips...", flush=True)
 
     for i, (start, end) in enumerate(segments):
         duration = end - start
-        out_path = os.path.join(output_dir, f"clip_{i+1:02d}.mp4")
+        out_path = os.path.join(CLIPS_OUTPUT_DIR, f"clip_{i+1:02d}.mp4")
 
         subprocess.run([
             "ffmpeg", "-y",
@@ -198,9 +167,19 @@ def download_veo(url, output_path="match.mp4"):
 def run(input_path, shirt_number, jersey_color):
     print(f"[VISIOR] Player #{shirt_number} | {jersey_color} jersey", flush=True)
 
-    timestamps, fps = find_player_timestamps(input_path, jersey_color)
+    if not TWELVELABS_API_KEY:
+        raise RuntimeError("TWELVELABS_API_KEY not set")
 
-    if not timestamps:
+    # 1. Get or create index
+    index_id = get_or_create_index()
+
+    # 2. Upload and index video
+    video_id = upload_video(index_id, input_path)
+
+    # 3. Search for player
+    clips = search_player(index_id, video_id, shirt_number, jersey_color)
+
+    if not clips:
         print("[ERROR] No moments found.", flush=True)
         result = {
             "success": False, "clips": [], "segments": [],
@@ -209,7 +188,10 @@ def run(input_path, shirt_number, jersey_color):
         print("JSON_RESULT:" + json.dumps(result))
         return
 
-    segments   = merge_timestamps(timestamps)
+    # 4. Merge segments
+    segments = merge_clips(clips)
+
+    # 5. Cut clips
     clip_paths = cut_clips(input_path, segments)
 
     print(f"[DONE] {len(clip_paths)} clips ready!", flush=True)
@@ -225,7 +207,7 @@ def run(input_path, shirt_number, jersey_color):
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
-        print("Usage: python ai_detector.py <veo_link_or_path> <shirt_number> <jersey_color>")
+        print("Usage: python3 ai_detector.py <veo_link_or_path> <shirt_number> <jersey_color>")
         sys.exit(1)
 
     input_path = sys.argv[1]
