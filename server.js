@@ -104,7 +104,7 @@ app.get("/api/clips-list", function(req, res) {
   res.json({ clips: files.map(function(f) { return "/clips/" + f; }) });
 });
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, function() {
   console.log("\n[VISIOR] Running on http://localhost:" + PORT + "\n");
 });
