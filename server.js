@@ -1,3 +1,10 @@
+process.on("uncaughtException", function(err) {
+  console.error("[UNCAUGHT]", err.message);
+});
+process.on("unhandledRejection", function(err) {
+  console.error("[UNHANDLED]", err);
+});
+
 const express = require("express");
 const cors = require("cors");
 const { spawn } = require("child_process");
@@ -30,6 +37,12 @@ function runAIDetector(jobId, veoLink, shirtNumber, jerseyColor) {
 
   py.stderr.on("data", function(data) {
     errorOutput += data.toString();
+  });
+
+  py.on("error", function(err) {
+    jobs[jobId].status = "error";
+    jobs[jobId].error = "Could not start python3: " + err.message;
+    console.error("[ERROR] python3 spawn failed:", err.message);
   });
 
   py.on("close", function(code) {
