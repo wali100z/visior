@@ -71,6 +71,9 @@ function runAIDetector(jobId, veoLink, shirtNumber, jerseyColor) {
   });
 }
 
+// Health check
+app.get("/health", function(req, res) { res.json({ status: "ok" }); });
+
 // ROUTE: Submit VEO link
 app.post("/api/find-player", function(req, res) {
   const veoLink = req.body.veoLink;
