@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Your Clips — Visior</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green: #97C459;
+    --black: #0d0d0d;
+    --white: #f5f5f0;
+    --gray: #888780;
+    --card: #161616;
+  }
+  body {
+    background: var(--black); color: var(--white);
+    font-family: 'DM Sans', sans-serif; font-weight: 300;
+  }
+
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 2.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    background: rgba(13,13,13,0.95);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif; font-size: 2rem;
+    letter-spacing: 0.08em; color: var(--green);
+    text-decoration: none;
+  }
+  .back-btn {
+    color: var(--gray); text-decoration: none; font-size: 0.85rem;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .back-btn:hover { color: var(--white); }
+
+  /* HERO */
+  .hero {
+    padding: 4rem 2.5rem 2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .hero-tag {
+    font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--green); margin-bottom: 1rem; display: block;
+  }
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 7vw, 6rem);
+    line-height: 0.95; letter-spacing: 0.02em;
+  }
+  .hero h1 span { color: var(--green); }
+  .hero-meta {
+    margin-top: 1rem; color: var(--gray); font-size: 0.9rem;
+  }
+
+  /* LOADING */
+  .loading-state {
+    padding: 6rem 2.5rem; text-align: center;
+  }
+  .spinner {
+    width: 48px; height: 48px; border: 3px solid rgba(151,196,89,0.2);
+    border-top-color: var(--green); border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin: 0 auto 2rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-state h2 {
+    font-family: 'Bebas Neue', sans-serif; font-size: 2rem;
+    letter-spacing: 0.05em; margin-bottom: 0.5rem;
+  }
+  .loading-state p { color: var(--gray); font-size: 0.9rem; }
+  .progress-bar-wrap {
+    width: 300px; height: 4px; background: rgba(255,255,255,0.06);
+    border-radius: 2px; margin: 2rem auto 0; overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%; background: var(--green); border-radius: 2px;
+    animation: progress 3s ease-in-out infinite alternate;
+  }
+  @keyframes progress { from { width: 10%; } to { width: 90%; } }
+
+  /* CLIPS GRID */
+  .clips-section { padding: 3rem 2.5rem; }
+  .section-label {
+    font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--green); margin-bottom: 2rem;
+  }
+  .clips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+  .clip-card {
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 4px; overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .clip-card:hover { border-color: rgba(151,196,89,0.3); }
+
+  .clip-video {
+    width: 100%; aspect-ratio: 16/9;
+    background: #000; display: block;
+  }
+  .clip-info {
+    padding: 1.2rem;
+  }
+  .clip-title {
+    font-size: 0.95rem; font-weight: 500; margin-bottom: 0.3rem;
+  }
+  .clip-time {
+    font-size: 0.8rem; color: var(--gray); margin-bottom: 1rem;
+  }
+  .clip-actions { display: flex; gap: 0.75rem; }
+  .btn-download {
+    flex: 1; background: var(--green); color: var(--black);
+    font-family: 'DM Sans', sans-serif; font-weight: 500;
+    font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 0.65rem 1rem; border: none; border-radius: 2px;
+    cursor: pointer; text-decoration: none; text-align: center;
+    transition: opacity 0.2s;
+  }
+  .btn-download:hover { opacity: 0.85; }
+  .btn-share {
+    background: transparent; color: var(--white);
+    font-family: 'DM Sans', sans-serif; font-weight: 400;
+    font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 0.65rem 1rem; border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 2px; cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .btn-share:hover { border-color: rgba(255,255,255,0.4); }
+
+  /* EMPTY STATE */
+  .empty-state {
+    padding: 6rem 2.5rem; text-align: center;
+  }
+  .empty-state h2 {
+    font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem;
+    letter-spacing: 0.05em; margin-bottom: 0.75rem;
+  }
+  .empty-state p { color: var(--gray); margin-bottom: 2rem; }
+  .btn-primary {
+    background: var(--green); color: var(--black);
+    font-family: 'DM Sans', sans-serif; font-weight: 500;
+    font-size: 0.9rem; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 0.9rem 2rem; border: none; border-radius: 2px;
+    cursor: pointer; text-decoration: none; display: inline-block;
+    transition: opacity 0.2s;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+
+  footer {
+    padding: 2rem 2.5rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem; color: var(--green);
+  }
+  footer p { font-size: 0.8rem; color: var(--gray); }
+
+  @media (max-width: 600px) {
+    nav, .hero, .clips-section, .loading-state, .empty-state { padding-left: 1.5rem; padding-right: 1.5rem; }
+    .clips-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">Visior</a>
+  <a href="/" class="back-btn">← Back</a>
+</nav>
+
+<!-- Hero -->
+<section class="hero" id="hero">
+  <span class="hero-tag">Match analysis complete</span>
+  <h1>Your <span>clips</span><br/>are ready.</h1>
+  <p class="hero-meta" id="hero-meta">Loading your highlights...</p>
+</section>
+
+<!-- Main content -->
+<div id="main-content">
+  <!-- Loading state -->
+  <div class="loading-state" id="loading-state">
+    <div class="spinner"></div>
+    <h2>Scanning your match</h2>
+    <p>AI is finding every moment you touched the ball...</p>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar"></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">Visior</div>
+  <p>Built for the next generation of ballers. © 2026 Visior.</p>
+</footer>
+
+<script>
+  // Get player info from URL params
+  // e.g. /clips.html?shirt=10&color=blue
+  const params = new URLSearchParams(window.location.search);
+  const shirt  = params.get('shirt') || '?';
+  const color  = params.get('color') || '?';
+
+  document.getElementById('hero-meta').textContent =
+    `Player #${shirt} • ${color} jersey`;
+
+  async function loadClips() {
+    try {
+      const jobId = params.get('job');
+      let clips = [];
+
+      if (jobId) {
+        const res  = await fetch('/api/status/' + jobId);
+        const data = await res.json();
+        if (data.status === 'done' && data.clips.length > 0) {
+          clips = data.clips;
+        } else if (data.status === 'error') {
+          showEmpty();
+          return;
+        }
+      } else {
+        const res  = await fetch('/api/clips-list');
+        const data = await res.json();
+        clips = data.clips || [];
+      }
+
+      if (clips.length === 0) {
+        showEmpty();
+        return;
+      }
+
+      showClips(clips);
+    } catch (err) {
+      showEmpty();
+    }
+  }
+
+  function showClips(clips) {
+    const main = document.getElementById('main-content');
+
+    let html = `
+      <section class="clips-section">
+        <div class="section-label">${clips.length} clip${clips.length !== 1 ? 's' : ''} found</div>
+        <div class="clips-grid">
+    `;
+
+    clips.forEach((filename, i) => {
+      const videoUrl = `/clips/${filename}`;
+      const mins     = Math.floor((i * 8) + 3); // rough timestamp display
+      html += `
+        <div class="clip-card">
+          <video class="clip-video" controls preload="metadata">
+            <source src="${videoUrl}" type="video/mp4"/>
+          </video>
+          <div class="clip-info">
+            <div class="clip-title">Clip ${i + 1} — Player #${shirt}</div>
+            <div class="clip-time">${color} jersey • ~${mins}' into the match</div>
+            <div class="clip-actions">
+              <a class="btn-download" href="/clips/${filename}" download="${filename}">Download</a>
+              <button class="btn-share" onclick="shareClip('${videoUrl}', ${i + 1})">Share</button>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    html += `</div></section>`;
+    main.innerHTML = html;
+  }
+
+  function showEmpty() {
+    document.getElementById('main-content').innerHTML = `
+      <div class="empty-state">
+        <h2>No clips yet</h2>
+        <p>The AI is still scanning your match or couldn't find player #${shirt}.<br/>Try again in a few minutes.</p>
+        <a href="/" class="btn-primary">Try again</a>
+      </div>
+    `;
+  }
+
+  async function shareClip(url, clipNum) {
+    const shareText = `Check out my highlight clip ${clipNum} from my latest match! Powered by Visior`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `Visior Clip ${clipNum}`, text: shareText, url });
+      } catch (e) {}
+    } else {
+      await navigator.clipboard.writeText(url);
+      alert('Link copied to clipboard!');
+    }
+  }
+
+  // Load clips on page open, retry every 10 seconds if empty
+  loadClips();
+  setInterval(loadClips, 10000);
+</script>
+</body>
+</html>

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Visior — Your Highlights, Automatically</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #97C459;
+    --green-dark: #3B6D11;
+    --green-light: #EAF3DE;
+    --black: #0d0d0d;
+    --white: #f5f5f0;
+    --gray: #888780;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 2.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    background: rgba(13,13,13,0.85);
+    backdrop-filter: blur(12px);
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.08em;
+    color: var(--green);
+  }
+  .nav-links { display: flex; gap: 2rem; align-items: center; }
+  .nav-links a {
+    color: var(--gray); text-decoration: none; font-size: 0.85rem;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .btn-nav {
+    background: var(--green); color: var(--black) !important;
+    padding: 0.55rem 1.4rem; border-radius: 2px;
+    font-weight: 500 !important; letter-spacing: 0.05em;
+    transition: opacity 0.2s !important;
+  }
+  .btn-nav:hover { opacity: 0.85; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 8rem 2.5rem 4rem;
+    position: relative; overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background: radial-gradient(ellipse 60% 50% at 80% 50%, rgba(99,153,34,0.12), transparent 70%);
+  }
+  .hero-tag {
+    display: inline-block;
+    font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--green); border: 1px solid rgba(99,153,34,0.4);
+    padding: 0.35rem 0.9rem; border-radius: 2px; margin-bottom: 2rem;
+    width: fit-content;
+  }
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 10vw, 9rem);
+    line-height: 0.92;
+    letter-spacing: 0.02em;
+    max-width: 900px;
+    position: relative; z-index: 1;
+  }
+  .hero h1 span { color: var(--green); }
+  .hero-sub {
+    margin-top: 2rem;
+    font-size: 1.1rem; color: var(--gray);
+    max-width: 480px; line-height: 1.7;
+    position: relative; z-index: 1;
+  }
+  .hero-cta {
+    margin-top: 3rem;
+    display: flex; gap: 1rem; align-items: center;
+    position: relative; z-index: 1; flex-wrap: wrap;
+  }
+  .btn-primary {
+    background: var(--green); color: var(--black);
+    font-family: 'DM Sans', sans-serif; font-weight: 500;
+    font-size: 0.9rem; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 1rem 2.2rem; border: none; border-radius: 2px;
+    cursor: pointer; text-decoration: none;
+    transition: opacity 0.2s, transform 0.15s;
+    display: inline-block;
+  }
+  .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+  .btn-ghost {
+    background: transparent; color: var(--white);
+    font-family: 'DM Sans', sans-serif; font-weight: 400;
+    font-size: 0.9rem; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 1rem 2.2rem; border: 1px solid rgba(255,255,255,0.2); border-radius: 2px;
+    cursor: pointer; text-decoration: none;
+    transition: border-color 0.2s;
+    display: inline-block;
+  }
+  .btn-ghost:hover { border-color: rgba(255,255,255,0.5); }
+
+  /* PITCH LINE */
+  .pitch {
+    padding: 5rem 2.5rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;
+    align-items: center;
+  }
+  .pitch-label {
+    font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--green); margin-bottom: 1.2rem;
+  }
+  .pitch h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    line-height: 1; letter-spacing: 0.03em;
+  }
+  .pitch-text { color: var(--gray); line-height: 1.8; font-size: 1rem; }
+  .pitch-text p + p { margin-top: 1rem; }
+
+  /* HOW IT WORKS */
+  .how { padding: 5rem 2.5rem; border-top: 1px solid rgba(255,255,255,0.06); }
+  .section-label {
+    font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--green); margin-bottom: 3rem;
+  }
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; background: rgba(255,255,255,0.06); }
+  .step {
+    background: var(--black); padding: 2.5rem 2rem;
+    position: relative;
+  }
+  .step-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 5rem; color: rgba(151,196,89,0.12);
+    line-height: 1; margin-bottom: 1rem;
+  }
+  .step h3 {
+    font-size: 1rem; font-weight: 500; margin-bottom: 0.6rem;
+    letter-spacing: 0.02em;
+  }
+  .step p { font-size: 0.875rem; color: var(--gray); line-height: 1.7; }
+
+  /* INPUT DEMO */
+  .demo {
+    padding: 5rem 2.5rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .demo-inner {
+    max-width: 640px;
+  }
+  .demo h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    letter-spacing: 0.03em; margin-bottom: 0.5rem;
+  }
+  .demo-sub { color: var(--gray); margin-bottom: 2.5rem; font-size: 0.95rem; }
+
+  .form-group { margin-bottom: 1.2rem; }
+  .form-group label {
+    display: block; font-size: 0.75rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--gray); margin-bottom: 0.5rem;
+  }
+  .form-group input, .form-group select {
+    width: 100%; background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--white); font-family: 'DM Sans', sans-serif;
+    font-size: 1rem; padding: 0.85rem 1rem; border-radius: 2px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--green);
+  }
+  .form-group input::placeholder { color: rgba(255,255,255,0.2); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+  /* COLORS */
+  .color-picker { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.5rem; }
+  .color-chip {
+    width: 36px; height: 36px; border-radius: 50%;
+    cursor: pointer; border: 2px solid transparent;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .color-chip:hover { transform: scale(1.1); }
+  .color-chip.active { border-color: var(--white); }
+
+  /* FOOTER */
+  footer {
+    padding: 3rem 2.5rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem; color: var(--green); letter-spacing: 0.08em;
+  }
+  footer p { font-size: 0.8rem; color: var(--gray); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .hero-tag  { animation: fadeUp 0.6s ease both; }
+  .hero h1   { animation: fadeUp 0.6s 0.1s ease both; }
+  .hero-sub  { animation: fadeUp 0.6s 0.2s ease both; }
+  .hero-cta  { animation: fadeUp 0.6s 0.3s ease both; }
+
+  @media (max-width: 700px) {
+    nav { padding: 1rem 1.5rem; }
+    .hero, .pitch, .how, .demo { padding-left: 1.5rem; padding-right: 1.5rem; }
+    .pitch { grid-template-columns: 1fr; gap: 2rem; }
+    .form-row { grid-template-columns: 1fr; }
+    footer { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Visior</div>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#try">Try it</a>
+    <a href="#try" class="btn-nav">Get started</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-tag">Built for the next generation of ballers</div>
+  <h1>Your match.<br/><span>Your clips.</span><br/>Zero effort.</h1>
+  <p class="hero-sub">Paste your VEO link, tell us your shirt number, and we find every single moment you touched the ball. Automatically.</p>
+  <div class="hero-cta">
+    <a href="#try" class="btn-primary">Get your clips</a>
+    <a href="#how" class="btn-ghost">See how it works</a>
+  </div>
+</section>
+
+<!-- PITCH -->
+<section class="pitch">
+  <div>
+    <div class="pitch-label">The problem</div>
+    <h2>You've got better things to do</h2>
+  </div>
+  <div class="pitch-text">
+    <p>Your coach sends a VEO link after every match. Then what? You sit there for 90 minutes scrubbing through footage, screen recording every moment you touched the ball, then editing it all together. On top of school, training, and everything else.</p>
+    <p>Visior does all of that in minutes. You show up, we find you.</p>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="section-label">How it works</div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <h3>Paste your VEO link</h3>
+      <p>The link your coach sends after every match. That's all you need to start.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <h3>Enter your details</h3>
+      <p>Tell us your shirt number and jersey color so we can find you among all 22 players.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <h3>AI does the work</h3>
+      <p>Our AI tracks you throughout the full match and pulls every moment you were involved.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <h3>Download your clips</h3>
+      <p>Your highlights are ready. Download them, post them, send them to scouts. Done.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TRY IT -->
+<section class="demo" id="try">
+  <div class="demo-inner">
+    <div class="section-label">Try it now</div>
+    <h2>Find yourself in the match</h2>
+    <p class="demo-sub">Enter your match details and we'll get your clips ready.</p>
+
+    <div class="form-group">
+      <label>VEO match link</label>
+      <input type="url" id="veoLink" placeholder="https://app.veo.co/matches/..."/>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Your shirt number</label>
+        <input type="number" placeholder="e.g. 10" min="1" max="99"/>
+      </div>
+      <div class="form-group">
+        <label>Your team</label>
+        <select>
+          <option value="" disabled selected>Select team</option>
+          <option>Home team</option>
+          <option>Away team</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Jersey color</label>
+      <input type="text" id="jerseyColor" placeholder="e.g. yellow, navy blue, dark green, white..."/>
+    </div>
+
+    <button class="btn-primary submit-btn" style="margin-top: 1rem; width: 100%; font-size: 1rem; padding: 1.1rem;" onclick="handleSubmit()">Find my clips →</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Visior</div>
+  <p>Built for the next generation of ballers. © 2026 Visior.</p>
+</footer>
+
+<script>
+  document.querySelectorAll('.color-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.color-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+
+  async function handleSubmit() {
+    const veoLink     = document.querySelector('input[type=url]').value.trim();
+    const shirtNumber = document.querySelector('input[type=number]').value.trim();
+    const teamSelect  = document.querySelector('select').value;
+    const activeChip  = document.querySelector('.color-chip.active');
+    const jerseyColor = activeChip ? activeChip.dataset.color : 'unknown';
+
+    if (!veoLink || !shirtNumber) {
+      showResult('error', '⚠️ Please fill in your VEO link and shirt number.');
+      return;
+    }
+
+    const btn = document.querySelector('.submit-btn');
+    btn.textContent = '🔍 Searching match...';
+    btn.disabled = true;
+    showResult('loading', '⏳ Connecting to VEO and finding you in the match...');
+
+    try {
+      const res = await fetch('/api/find-player', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ veoLink, shirtNumber, jerseyColor }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        showResult('success', `
+          ✅ <strong>Match found!</strong><br/><br/>
+          📹 <strong>Match:</strong> ${data.matchTitle}<br/>
+          👕 <strong>Player:</strong> #${data.player.shirtNumber} (${data.player.jerseyColor} jersey)<br/><br/>
+          🤖 AI player detection is next — coming as soon as your VEO credentials are active!
+        `);
+      } else {
+        showResult('error', `❌ Error: ${data.error}`);
+      }
+    } catch (err) {
+      showResult('error', '❌ Could not connect to Visior server. Make sure it\'s running with <code>npm start</code>.');
+    }
+
+    btn.textContent = 'Find my clips →';
+    btn.disabled = false;
+  }
+
+  function showResult(type, message) {
+    let box = document.getElementById('result-box');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'result-box';
+      box.style.cssText = `
+        margin-top: 1.5rem; padding: 1.2rem 1.4rem;
+        border-radius: 2px; font-size: 0.92rem; line-height: 1.8;
+        border: 1px solid; transition: all 0.3s;
+      `;
+      document.querySelector('.demo-inner').appendChild(box);
+    }
+    const colors = {
+      success: 'rgba(99,153,34,0.15); border-color: rgba(99,153,34,0.4); color: #c8e89a',
+      error:   'rgba(192,57,43,0.15); border-color: rgba(192,57,43,0.4); color: #f09595',
+      loading: 'rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.1); color: #888780',
+    };
+    box.style.background = colors[type].split(';')[0];
+    box.style.borderColor = colors[type].split(';')[1].split(':')[1];
+    box.style.color = colors[type].split(';')[2].split(':')[1];
+    box.innerHTML = message;
+  }
+</script>
+</body>
+</html>
