@@ -25,7 +25,9 @@ const jobs = {};
 function runAIDetector(jobId, veoLink, shirtNumber, jerseyColor) {
   jobs[jobId] = { status: "processing", clips: [], error: null };
 
-  const py = spawn(process.env.PYTHON_PATH || "python3", [AI_SCRIPT, veoLink, shirtNumber, jerseyColor]);
+  const py = spawn(process.env.PYTHON_PATH || "python3", [AI_SCRIPT, veoLink, shirtNumber, jerseyColor], {
+    env: Object.assign({}, process.env)
+  });
   let output = "";
   let errorOutput = "";
 
