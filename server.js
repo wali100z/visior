@@ -25,9 +25,13 @@ const jobs = {};
 function runAIDetector(jobId, veoLink, shirtNumber, jerseyColor) {
   jobs[jobId] = { status: "processing", clips: [], error: null };
 
-  const py = spawn(process.env.PYTHON_PATH || "python3", [AI_SCRIPT, veoLink, shirtNumber, jerseyColor], {
-    env: Object.assign({}, process.env)
+  const pythonEnv = Object.assign({}, process.env, {
+    TWELVELABS_API_KEY: process.env.TWELVELABS_API_KEY || ""
   });
+  const py = spawn(process.env.PYTHON_PATH || "python3", [
+    AI_SCRIPT, veoLink, shirtNumber, jerseyColor,
+    process.env.TWELVELABS_API_KEY || ""
+  ], { env: pythonEnv });
   let output = "";
   let errorOutput = "";
 

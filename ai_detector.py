@@ -8,7 +8,7 @@ import requests
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-TWELVELABS_API_KEY = os.environ.get("TWELVELABS_API_KEY", "")
+TWELVELABS_API_KEY = sys.argv[4] if len(sys.argv) > 4 else os.environ.get("TWELVELABS_API_KEY", "")
 TWELVELABS_API     = "https://api.twelvelabs.io/v1.2"
 CLIPS_OUTPUT_DIR   = "clips"
 MAX_CLIP_SEC       = 60
