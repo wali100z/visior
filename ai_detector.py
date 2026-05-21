@@ -207,7 +207,7 @@ def run(input_path, shirt_number, jersey_color):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
+    if len(sys.argv) < 4:
         print("Usage: python3 ai_detector.py <veo_link_or_path> <shirt_number> <jersey_color>")
         sys.exit(1)
 
