@@ -16,10 +16,8 @@ PRE_ROLL_SEC       = 5
 
 
 def get_or_create_index():
-    """Get existing Visior index or create one."""
+    headers = {"x-api-key": TWELVELABS_API_KEY}
     print(f"[TL] API key length: {len(TWELVELABS_API_KEY)}", flush=True)
-headers = {"x-api-key": TWELVELABS_API_KEY}
-
     res = requests.get(f"{TWELVELABS_API}/indexes", headers=headers)
     print(f"[TL] Index response: {res.status_code} {res.text[:200]}", flush=True)
     indexes = res.json().get("data", [])
@@ -40,8 +38,7 @@ headers = {"x-api-key": TWELVELABS_API_KEY}
 
 def upload_video(index_id, video_path):
     """Upload video to Twelve Labs and wait for indexing."""
-    print(f"[TL] API key length: {len(TWELVELABS_API_KEY)}", flush=True)
-headers = {"x-api-key": TWELVELABS_API_KEY}
+    headers = {"x-api-key": TWELVELABS_API_KEY}
 
     print(f"[TL] Uploading video to Twelve Labs...", flush=True)
 
