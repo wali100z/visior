@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --break-system-packages opencv-python-headless numpy requests
+RUN pip3 install --break-system-packages opencv-python-headless numpy requests twelvelabs
 
 RUN wget -q https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
     -O /usr/local/bin/yt-dlp && chmod +x /usr/local/bin/yt-dlp
