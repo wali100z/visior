@@ -26,7 +26,6 @@ def download_veo(url, output_path="match.mp4"):
 
 
 def get_or_create_index(client):
-    from twelvelabs.models.index import Index
     indexes = list(client.index.list())
     for idx in indexes:
         if idx.name == "visior-matches":
