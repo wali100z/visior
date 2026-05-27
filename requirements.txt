@@ -1,4 +1,6 @@
 fastapi
 uvicorn
 twelvelabs
-yt-dlp
+opencv-python-headless
+numpy
+requests

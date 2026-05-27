@@ -1,10 +1,7 @@
-FROM node:22-bookworm-slim
+FROM python:3.11-slim
 
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    python3-dev \
-    python3-numpy \
     ffmpeg \
     libgl1-mesa-glx \
     libglib2.0-0 \
@@ -12,17 +9,22 @@ RUN apt-get update && apt-get install -y \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --break-system-packages opencv-python-headless numpy requests twelvelabs
-
+# Install yt-dlp
 RUN wget -q https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
     -O /usr/local/bin/yt-dlp && chmod +x /usr/local/bin/yt-dlp
 
+# Set work directory
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci
+
+# Copy Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the app
 COPY . .
 
-ENV PORT=8080
-EXPOSE 8080
+# Expose port
+EXPOSE 10000
 
+# Start FastAPI server
 CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "10000"]
