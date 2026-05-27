@@ -7,7 +7,7 @@ import subprocess
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-TWELVELABS_API_KEY = sys.argv[4] if len(sys.argv) > 4 else os.environ.get("TWELVELABS_API_KEY", "")
+TWELVELABS_API_KEY = os.environ.get("TWELVELABS_API_KEY", "")
 CLIPS_OUTPUT_DIR   = "clips"
 MAX_CLIP_SEC       = 60
 PRE_ROLL_SEC       = 5
@@ -147,16 +147,3 @@ def run_return_dict(input_path, shirt_number, jersey_color):
         "segments": segments,
         "player": {"shirtNumber": shirt_number, "jerseyColor": jersey_color}
     }
-
-
-if __name__ == "__main__":
-    if len(sys.argv) < 4:
-        print("Usage: python3 ai_detector.py <veo_link_or_path> <shirt_number> <jersey_color>")
-        sys.exit(1)
-
-    input_path = sys.argv[1]
-    if input_path.startswith("http"):
-        input_path = download_veo(input_path)
-
-    result = run_return_dict(input_path, sys.argv[2], sys.argv[3])
-    print("JSON_RESULT:" + json.dumps(result))

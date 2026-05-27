@@ -13,18 +13,15 @@ RUN apt-get update && apt-get install -y \
 RUN wget -q https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
     -O /usr/local/bin/yt-dlp && chmod +x /usr/local/bin/yt-dlp
 
-# Set work directory
 WORKDIR /app
 
-# Copy Python dependencies
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the app
 COPY . .
 
-# Expose port
 EXPOSE 10000
 
-# Start FastAPI server
 CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "10000"]
