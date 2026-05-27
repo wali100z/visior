@@ -29,16 +29,19 @@ def get_or_create_index(client):
     indexes = list(client.indexes.list())
 
     for idx in indexes:
-        if getattr(idx, "index_name", None) == "visior-matches":
-            print(f"[TL] Using index: {idx.index_id}", flush=True)
-            return idx.index_id
+        idx_name = getattr(idx, "index_name", None) or getattr(idx, "name", None)
+        if idx_name == "visior-matches":
+            idx_id = getattr(idx, "index_id", None) or getattr(idx, "id", None)
+            print(f"[TL] Using index: {idx_id}", flush=True)
+            return idx_id
 
     idx = client.indexes.create(
         index_name="visior-matches",
         models=[{"name": "marengo2.7", "options": ["visual"]}]
     )
-    print(f"[TL] Created index: {idx.index_id}", flush=True)
-    return idx.index_id
+    idx_id = getattr(idx, "index_id", None) or getattr(idx, "id", None)
+    print(f"[TL] Created index: {idx_id}", flush=True)
+    return idx_id
 
 
 def upload_and_index(client, index_id, video_path):
