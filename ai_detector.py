@@ -26,12 +26,12 @@ def download_veo(url, output_path="match.mp4"):
 
 
 def get_or_create_index(client):
-    indexes = list(client.index.list())
+    indexes = list(client.indexes.list())
     for idx in indexes:
         if idx.name == "visior-matches":
             print(f"[TL] Using index: {idx.id}", flush=True)
             return idx.id
-    idx = client.index.create(
+    idx = client.indexes.create(
         name="visior-matches",
         models=[{"name": "marengo2.7", "options": ["visual"]}]
     )
@@ -41,11 +41,11 @@ def get_or_create_index(client):
 
 def upload_and_index(client, index_id, video_path):
     print("[TL] Uploading video...", flush=True)
-    task = client.task.create(index_id=index_id, file=video_path)
+    task = client.tasks.create(index_id=index_id, file=video_path)
     print(f"[TL] Task: {task.id} — waiting for indexing...", flush=True)
 
     while True:
-        task = client.task.retrieve(task.id)
+        task = client.tasks.retrieve(task.id)
         print(f"[TL] Status: {task.status}", flush=True)
         if task.status == "ready":
             print(f"[TL] Indexed! Video: {task.video_id}", flush=True)
