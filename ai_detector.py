@@ -27,12 +27,14 @@ def download_veo(url, output_path="match.mp4"):
 
 def get_or_create_index(client):
     indexes = list(client.indexes.list())
+
     for idx in indexes:
-        if idx.name == "visior-matches":
+        if getattr(idx, "index_name", None) == "visior-matches":
             print(f"[TL] Using index: {idx.id}", flush=True)
             return idx.id
+
     idx = client.indexes.create(
-        name="visior-matches",
+        index_name="visior-matches",
         models=[{"name": "marengo2.7", "options": ["visual"]}]
     )
     print(f"[TL] Created index: {idx.id}", flush=True)
@@ -115,7 +117,7 @@ def cut_clips(video_path, segments):
     return clip_paths
 
 
-def run(input_path, shirt_number, jersey_color):
+def run_return_dict(input_path, shirt_number, jersey_color):
     from twelvelabs import TwelveLabs
 
     print(f"[VISIOR] Player #{shirt_number} | {jersey_color} jersey", flush=True)
@@ -128,21 +130,23 @@ def run(input_path, shirt_number, jersey_color):
 
     if not clips:
         print("[ERROR] No moments found.", flush=True)
-        result = {"success": False, "clips": [], "segments": [], "player": {"shirtNumber": shirt_number, "jerseyColor": jersey_color}}
-        print("JSON_RESULT:" + json.dumps(result))
-        return
+        return {
+            "success": False,
+            "clips": [],
+            "segments": [],
+            "player": {"shirtNumber": shirt_number, "jerseyColor": jersey_color}
+        }
 
     segments   = merge_clips(clips)
     clip_paths = cut_clips(input_path, segments)
 
     print(f"[DONE] {len(clip_paths)} clips ready!", flush=True)
-    result = {
+    return {
         "success": True,
         "clips": clip_paths,
         "segments": segments,
         "player": {"shirtNumber": shirt_number, "jerseyColor": jersey_color}
     }
-    print("JSON_RESULT:" + json.dumps(result))
 
 
 if __name__ == "__main__":
@@ -154,4 +158,5 @@ if __name__ == "__main__":
     if input_path.startswith("http"):
         input_path = download_veo(input_path)
 
-    run(input_path, sys.argv[2], sys.argv[3])
+    result = run_return_dict(input_path, sys.argv[2], sys.argv[3])
+    print("JSON_RESULT:" + json.dumps(result))
