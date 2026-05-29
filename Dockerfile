@@ -1,27 +1,27 @@
-FROM python:3.11-slim
+FROM node:22-bookworm-slim
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-dev \
     ffmpeg \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
     curl \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-# Install yt-dlp
+RUN pip3 install --break-system-packages opencv-python-headless numpy
+
 RUN wget -q https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
     -O /usr/local/bin/yt-dlp && chmod +x /usr/local/bin/yt-dlp
 
 WORKDIR /app
-
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the rest of the app
+COPY package*.json ./
+RUN npm ci
 COPY . .
 
-EXPOSE 10000
+ENV PORT=8080
+EXPOSE 8080
 
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "10000"]
+CMD ["node", "server.js"]
