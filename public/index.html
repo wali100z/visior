@@ -290,19 +290,34 @@ footer p { font-size: 0.7rem; color: var(--gray); letter-spacing: 0.05em; }
   }
 
   function pollStatus(jobId, shirtNumber, jerseyColor) {
+    const steps = [
+      "Downloading match video...",
+      "Extracting frames from video...",
+      "Scanning for player...",
+      "Cutting your clips..."
+    ];
+    let stepIndex = 0;
+
     const interval = setInterval(async () => {
       try {
         const res  = await fetch('/api/status/' + jobId);
         const data = await res.json();
+
         if (data.status === 'done') {
           clearInterval(interval);
           window.location.href = '/clips.html?shirt=' + shirtNumber + '&color=' + jerseyColor + '&job=' + jobId;
         } else if (data.status === 'error') {
           clearInterval(interval);
-          showStatus('error', 'AI error: ' + data.error);
+          showStatus('error', 'Error: ' + data.error);
           const btn = document.getElementById('submitBtn');
           btn.textContent = 'Find my clips';
           btn.disabled = false;
+        } else {
+          const step = data.step || steps[stepIndex % steps.length];
+          showStatus('loading',
+            '<b>' + step + '</b><br>' +
+            '<small style="color:#5a5a5a">This takes 5-10 mins — stay on this page, your clips are coming.</small>'
+          );
         }
       } catch(e) {}
     }, 4000);

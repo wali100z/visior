@@ -23,7 +23,7 @@ const AI_SCRIPT = path.join(__dirname, "ai_detector.py");
 const jobs = {};
 
 function runAIDetector(jobId, veoLink, shirtNumber, jerseyColor) {
-  jobs[jobId] = { status: "processing", clips: [], error: null };
+  jobs[jobId] = { status: "processing", clips: [], error: null, step: "Downloading match..." };
 
   const pythonEnv = Object.assign({}, process.env, {
     TWELVELABS_API_KEY: process.env.TWELVELABS_API_KEY || ""
@@ -39,6 +39,11 @@ function runAIDetector(jobId, veoLink, shirtNumber, jerseyColor) {
     const text = data.toString();
     output += text;
     process.stdout.write(text);
+    if (text.includes("[DOWNLOAD]")) jobs[jobId].step = "Downloading match video...";
+    if (text.includes("[FRAMES]"))   jobs[jobId].step = "Extracting frames from video...";
+    if (text.includes("[SCAN]"))     jobs[jobId].step = "Scanning for player...";
+    if (text.includes("[CUT]"))      jobs[jobId].step = "Cutting your clips...";
+    if (text.includes("[DONE]"))     jobs[jobId].step = "Done!";
   });
 
   py.stderr.on("data", function(data) {
