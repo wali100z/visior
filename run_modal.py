@@ -15,7 +15,7 @@ def main():
     jersey_color = sys.argv[3]
 
     import modal
-    f = modal.Function.lookup("visior", "process_match")
+    f = modal.Function.from_name("visior", "process_match")
     result = f.remote(veo_url, shirt_number, jersey_color)
 
     # Save clips to local clips/ folder
